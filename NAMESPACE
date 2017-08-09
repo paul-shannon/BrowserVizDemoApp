@@ -1,0 +1,20 @@
+exportClasses(BrowserVizDemoClass)
+
+exportMethods (
+   ping,
+   plot,
+   getSelection
+   )
+
+export(
+   BrowserVizDemo
+   )
+
+importClassesFrom(methods, character, integer)
+importFrom(methods, new)
+
+import(BrowserViz)
+import(BiocGenerics)
+import(httpuv)
+import(jsonlite)
+import(Rcpp)
