@@ -28135,8 +28135,6 @@ function addMessageHandlers()
 function initializeUI()
 {
    console.log("=== STARTING inst/browserCode/src/browservizdemo.js initializeUI");
-    alert("paused in initializeUI")
-    debugger;
    //var plotDiv = $("#browserVizDemoDiv");
    //var d3plotDiv = d3.select("#browserVizDemoDiv");
    //console.log("div: ");
@@ -28158,7 +28156,7 @@ function handleWindowResize ()
 
       // an easy way to rescale the canvas when the browser window size changes: just redraw
    if(this.dataReceived)
-    this.d3plot(dataset, xMin, xMax, yMin, yMax);
+     this.d3plot(this.dataset, this.xMin, this.xMax, this.yMin, this.yMax);
 
 } // handleWindowResize
 //--------------------------------------------------------------------------------
@@ -28189,23 +28187,23 @@ function d3plotPrep (msg)
    console.log(msg)
 
    var payload = msg.payload;
-   var dataReceived = true;
 
       // assign global variables
 
-   var dataset = [];
-   var datasetLength = payload.x.length
+   this.dataset = [];
+   this.datasetLength = payload.x.length
 
-   for(var i=0; i < datasetLength; i++){
-     dataset.push({x: payload.x[i], y: payload.y[i]});
+   for(var i=0; i < this.datasetLength; i++){
+     this.dataset.push({x: payload.x[i], y: payload.y[i]});
      }
 
-   var xMin = msg.payload.xMin;
-   var xMax = msg.payload.xMax;
-   var yMin = msg.payload.yMin;
-   var yMax = msg.payload.yMax;
+   this.xMin = msg.payload.xMin;
+   this.xMax = msg.payload.xMax;
+   this.yMin = msg.payload.yMin;
+   this.yMax = msg.payload.yMax;
+   this.dataReceived = true;
 
-   this.d3plot(dataset, xMin, xMax, yMin, yMax)
+   this.d3plot(this.dataset, this.xMin, this.xMax, this.yMin, this.yMax)
 
    var return_msg = {cmd: msg.callback, status: "success", callback: "", payload: ""};
    hub.send(return_msg);
@@ -28327,9 +28325,9 @@ function getSelection(msg)
    var y0 = selectedRegion[0][1];
    var y1 = selectedRegion[1][1];
 
-   for(var i=0; i < datasetLength; i++){
-      var x = dataset[i].x;
-      var y = dataset[i].y;
+   for(var i=0; i < this.datasetLength; i++){
+      var x = this.dataset[i].x;
+      var y = this.dataset[i].y;
       if(x >= x0 & x <= x1 & y >= y0 & y <= y1) {
         console.log ("TRUE");
         selectedNames.push("point " + i);
@@ -28352,7 +28350,14 @@ function getSelection(msg)
     addMessageHandlers: addMessageHandlers,
     initializeUI: initializeUI,
     d3plot: d3plot,
-    handleWindowResize: handleWindowResize
+    handleWindowResize: handleWindowResize,
+    dataReceived: dataReceived,
+    dataset: dataset,
+    datasetLength: datasetLength,
+    xMin: xMin,
+    xMax: xMax,
+    yMin: yMin,
+    yMax: yMax
     });
 
 }); // BrowserVizDemo
