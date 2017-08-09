@@ -1,3 +1,9 @@
+# for R
+.Rhistory
+*.RData
+.DS_Store
+
+
 # Logs
 logs
 *.log
