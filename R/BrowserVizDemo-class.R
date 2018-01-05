@@ -6,7 +6,7 @@ browserVizDemoBrowserFile <- system.file(package="BrowserVizDemo", "browserCode"
 #----------------------------------------------------------------------------------------------------
 .BrowserVizDemo <- setClass ("BrowserVizDemoClass",
                             representation = representation (),
-                            contains = "BrowserVizClass",
+                            contains = "BrowserViz2Class",
                             prototype = prototype (uri="http://localhost", 9000)
                             )
 
@@ -24,7 +24,7 @@ setupMessageHandlers <- function()
 # constructor
 BrowserVizDemo = function(portRange, host="localhost", title="BrowserVizDemo", quiet=TRUE)
 {
-  .BrowserVizDemo(BrowserViz(portRange, host, title, quiet, browserFile=browserVizDemoBrowserFile))
+  .BrowserVizDemo(BrowserViz2(portRange, host, title, quiet, browserFile=browserVizDemoBrowserFile))
 
 } # BrowserVizDemo: constructor
 #----------------------------------------------------------------------------------------------------
