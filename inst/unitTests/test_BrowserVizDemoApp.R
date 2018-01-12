@@ -27,8 +27,9 @@ testWindowTitle <- function()
 {
    print("--- testWindowTitle")
    app <- BrowserVizDemo(PORT.RANGE)
+   openBrowser(app)
    checkTrue(ready(app))
-   checkEquals(getBrowserWindowTitle(app), "BrowserVizDemo")
+   checkEquals(getBrowserWindowTitle(app), "")
    setBrowserWindowTitle(app, "new title");
    checkEquals(getBrowserWindowTitle(app), "new title")
    closeWebSocket(app)
@@ -39,6 +40,7 @@ testPlot <- function()
 {
    print("--- testPlot")
    app <- BrowserVizDemo(PORT.RANGE)
+   openBrowser(app)
    checkTrue(ready(app))
 
    title <- "simple xy plot test";
@@ -61,13 +63,13 @@ demo <- function()
 {
    print("--- testPlot")
    app <- BrowserVizDemo(PORT.RANGE)
+   openBrowser(app)
    checkTrue(ready(app))
    checkEquals(ping(app), "pong")
 
    title <- "simple xy plot test";
    setBrowserWindowTitle(app, title)
    checkEquals(getBrowserWindowTitle(app), title)
-
 
    plot(app, 1:10, (1:10)^2)
 

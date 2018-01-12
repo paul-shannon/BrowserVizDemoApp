@@ -33,7 +33,7 @@ setMethod('ping', 'BrowserVizDemoClass',
   function (obj) {
      send(obj, list(cmd="ping", callback="handleResponse", status="request", payload=""))
      while (!browserResponseReady(obj)){
-        if(!obj@quiet) message(sprintf("plot waiting for browser response"));
+        if(!obj@quiet) message(sprintf("ping waiting for browser response"));
         Sys.sleep(.1)
         }
      getBrowserResponse(obj)
@@ -47,6 +47,8 @@ setMethod('plot', 'BrowserVizDemoClass',
      xMax <- max(x)
      yMin <- min(y)
      yMax <- max(y)
+     printf("about to puase in BrowserVizDemoApp/BrowserVizDemo-class::plot")
+     browser()
      send(obj, list(cmd="plotxy", callback="handleResponse", status="request",
                     payload=list(x=x, y=y, xMin=xMin, xMax=xMax, yMin=yMin, yMax=yMax)))
      while (!browserResponseReady(obj)){
