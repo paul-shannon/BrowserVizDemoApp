@@ -3,10 +3,17 @@ library (methods)
 #----------------------------------------------------------------------------------------------------
 #browserVizDemoBrowserFile <- system.file(package="BrowserVizDemo", "scripts", "browserVizDemo.html")
 browserVizDemoBrowserFile <- system.file(package="BrowserVizDemo", "browserCode", "dist", "browservizdemo.html")
+appBrowserFile <- NULL
+
+.onLoad <- function(...){
+   appBrowserFile <<- system.file(package="BrowserVizDemoApp", "browserCode", "dist", "browservizdemo.html")
+   }
+
+
 #----------------------------------------------------------------------------------------------------
 .BrowserVizDemo <- setClass ("BrowserVizDemoClass",
                             representation = representation (),
-                            contains = "BrowserViz2Class",
+                            contains = "BrowserViz",
                             prototype = prototype (uri="http://localhost", 9000)
                             )
 
@@ -24,7 +31,7 @@ setupMessageHandlers <- function()
 # constructor
 BrowserVizDemo = function(portRange, host="localhost", title="BrowserVizDemo", quiet=TRUE)
 {
-  .BrowserVizDemo(BrowserViz2(portRange, host, title, quiet, browserFile=browserVizDemoBrowserFile))
+  .BrowserVizDemo(BrowserViz(portRange, title, browserFile=appBrowserFile, quiet))
 
 } # BrowserVizDemo: constructor
 #----------------------------------------------------------------------------------------------------

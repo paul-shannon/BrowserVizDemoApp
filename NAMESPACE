@@ -13,7 +13,7 @@ export(
 importClassesFrom(methods, character, integer)
 importFrom(methods, new)
 
-import(bv2)
+import(BrowserViz)
 import(BiocGenerics)
 import(httpuv)
 import(jsonlite)
