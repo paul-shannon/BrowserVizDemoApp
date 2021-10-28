@@ -43,7 +43,7 @@
 
 <script type="text/javascript">
 m4_changequote(,)
-m4_include(../lib/d3.min.js)
+m4_include(../lib/d3.v7.min.js)
 m4_include(../lib/browserviz.js)
 m4_include(bvDemo.js)
 </script>
