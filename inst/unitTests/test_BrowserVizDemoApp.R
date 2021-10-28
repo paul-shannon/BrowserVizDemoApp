@@ -63,20 +63,20 @@ demo <- function()
 {
    print("--- testPlot")
    app <- BrowserVizDemo(PORT.RANGE)
-   openBrowser(app)
    checkTrue(ready(app))
+   ping(app)
    checkEquals(ping(app), "pong")
 
    title <- "simple xy plot test";
    setBrowserWindowTitle(app, title)
    checkEquals(getBrowserWindowTitle(app), title)
 
-   plot(app, 1:10, (1:10)^2)
+   plot(app, 1:5, (1:5)^2)
 
      # without direct manipulation of the plotted surface by the user, there
      # will still be no selections
 
-   #getSelection(app)
+   getSelection(app)
 
    app
 

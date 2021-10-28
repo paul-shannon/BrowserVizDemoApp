@@ -1,12 +1,11 @@
 library (httpuv)
 library (methods)
 #----------------------------------------------------------------------------------------------------
-#browserVizDemoBrowserFile <- system.file(package="BrowserVizDemo", "scripts", "browserVizDemo.html")
-browserVizDemoBrowserFile <- system.file(package="BrowserVizDemo", "browserCode", "dist", "browservizdemo.html")
+#browserVizDemoBrowserFile <- system.file(package="BrowserVizDemoApp", "browserCode", "dist", "bvDemo.html")
 appBrowserFile <- NULL
 
 .onLoad <- function(...){
-   appBrowserFile <<- system.file(package="BrowserVizDemoApp", "browserCode", "dist", "browservizdemo.html")
+   appBrowserFile <<- system.file(package="BrowserVizDemoApp", "browserCode", "dist", "bvDemo.html")
    }
 
 
@@ -22,16 +21,16 @@ setGeneric ('ping',  signature='obj', function (obj) standardGeneric ('ping'))
 setGeneric ('plot',  signature='obj', function (obj, x, y) standardGeneric ('plot'))
 setGeneric ('getSelection',  signature='obj', function (obj) standardGeneric ('getSelection'))
 #----------------------------------------------------------------------------------------------------
-setupMessageHandlers <- function()
-{
-   addRMessageHandler("handleResponse", "handleResponse")
-
-} # setupMessageHandlers
+#setupMessageHandlers <- function()
+#{
+#   addRMessageHandler("handleResponse", "handleResponse")#
+#
+# } # setupMessageHandlers
 #----------------------------------------------------------------------------------------------------
 # constructor
 BrowserVizDemo = function(portRange, host="localhost", title="BrowserVizDemo", quiet=TRUE)
 {
-  .BrowserVizDemo(BrowserViz(portRange, title, browserFile=appBrowserFile, quiet))
+  .BrowserVizDemo(BrowserViz(portRange, title, browserFile=appBrowserFile, quiet=FALSE))
 
 } # BrowserVizDemo: constructor
 #----------------------------------------------------------------------------------------------------
@@ -40,8 +39,7 @@ setMethod('ping', 'BrowserVizDemoClass',
   function (obj) {
      send(obj, list(cmd="ping", callback="handleResponse", status="request", payload=""))
      while (!browserResponseReady(obj)){
-        if(!obj@quiet) message(sprintf("ping waiting for browser response"));
-        Sys.sleep(.1)
+        wait(obj, 100)
         }
      getBrowserResponse(obj)
      }) # ping
@@ -55,12 +53,11 @@ setMethod('plot', 'BrowserVizDemoClass',
      yMin <- min(y)
      yMax <- max(y)
      printf("about to puase in BrowserVizDemoApp/BrowserVizDemo-class::plot")
-     browser()
      send(obj, list(cmd="plotxy", callback="handleResponse", status="request",
                     payload=list(x=x, y=y, xMin=xMin, xMax=xMax, yMin=yMin, yMax=yMax)))
      while (!browserResponseReady(obj)){
         if(!obj@quiet) message(sprintf("plot waiting for browser response"));
-        Sys.sleep(.1)
+        wait(obj, 100)
         }
      getBrowserResponse(obj)
      })
@@ -72,7 +69,7 @@ setMethod('getSelection', 'BrowserVizDemoClass',
      send(obj, list(cmd="getSelection", callback="handleResponse", status="request", payload=""))
      while (!browserResponseReady(obj)){
         if(!obj@quiet) message(sprintf("getSelection waiting for browser response"));
-        Sys.sleep(.1)
+        wait(obj, 100)
         }
      getBrowserResponse(obj)
      })

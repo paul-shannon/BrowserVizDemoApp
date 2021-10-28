@@ -1,27 +1,15 @@
-build: webpack assemble buildPackage installPackage
+default:
+	@echo targets: build.js, install.pkg, htmlOnly
 
-assemble:
-	(cd ./dist; m4 -P browservizdemo.html-template > browservizdemo.html)
-	ls -l ./dist/browservizdemo.html
+build.js: 
+	(cd ./src; m4 -P bvDemo.pre > ../dist/bvDemo.html)
+	ls -l ./dist/bvDemo.html
 
-buildPackage:
-	(cd ../../..; R CMD build --no-build-vignettes BrowserVizDemoApp)
+install.pkg:
+	(cd ../..; R CMD INSTALL . )
 
-installPackage:
-	(cd ../../..; R CMD INSTALL `ls -at BrowserVizDemo_* | head -1`)
+htmlOnly: build.js
+	open dist/bvDemo.html
+	@echo now run 'test_app()' in the javascript console
 
-webpack:
-	npm update
-	webpack
 
-test:
-	(cd ./dist; pwd)
-
-all: clean install run
-
-clean:
-	- rm -rf dist/
-	- rm -rf node_modules
-
-install:
-	npm install

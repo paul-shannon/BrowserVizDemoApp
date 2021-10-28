@@ -1,49 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-   <title>BrowserVizDemo</title>
-   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-   <script src="https://cdn.rawgit.com/paul-shannon/CDN/master/js/BrowserViz.js"></script>
-   <script src="http://s3.amazonaws.com/oncoscape/js/d3.min.js"></script>
-<style>
-
-.center {
-   margin-left: auto;
-   margin-right: auto;
-   width: 70%;
-   background-color: #b0e0e6;
-   }
-
-#browserVizDemoDiv {
-  background-color: #F0F0F0;
-  position: relative;
-  height: 400px;
-  width: 600px;
-  border: 1px solid #aaa;
-  border-radius: 5px;
-  margin-right: auto;
-  margin-left: auto;
-  margin-top: 20px;
-  margin-bottom: auto;
-  padding: 0px;
-  }
-
-.extent {
-  fill-opacity: .1;
-  stroke: #f00;
-  }
-
-.domain {
-  fill: none;
-  stroke: black;
-  stroke-width; 1;
-  }
-
-</style>
-
-<script>
+bvd_version = "1.0.2"
 //----------------------------------------------------------------------------------------------------
-var BrowserVizDemo = (function(){
+var BrowserVizDemo = (function(hub){
 
    var plotDiv;
    var d3plotDiv;
@@ -53,9 +10,11 @@ var BrowserVizDemo = (function(){
    var xMin, xMax, yMin, yMax;  // conveniently calculated in R, part of payload
    var datasetLength;
 
-   var hub;                     // defined in BrowserViz.js, has lots of helpful socket
+   var hub = hub;               // defined in BrowserViz.js, has lots of helpful socket
                                 // and message support
    var bvDemo;                  // this simple webapp
+   var selectedRegion = [];     // updated when a region of the plotting surface is brushed
+   var selectedNames = [];
 
 //----------------------------------------------------------------------------------------------------
 function setHub(newHub)
@@ -66,6 +25,7 @@ function setHub(newHub)
 //----------------------------------------------------------------------------------------------------
 function addMessageHandlers()
 {
+   hub.addMessageHandler("ping", ping)
    hub.addMessageHandler("plotxy", d3plotPrep)
    hub.addMessageHandler("getSelection", getSelection)
 
@@ -74,8 +34,8 @@ function addMessageHandlers()
 // called out of the hub once the web page (the DOM) is ready (fully loaded)
 function initializeUI()
 {
-   plotDiv = $("#browserVizDemoDiv");
-   d3plotDiv = d3.select("#browserVizDemoDiv");
+   plotDiv = $("#bvDemoDiv");
+   d3plotDiv = d3.select("#bvDemoDiv");
    console.log("div: " + plotDiv)
    $(window).resize(handleWindowResize);
    handleWindowResize();
@@ -93,27 +53,53 @@ function handleWindowResize ()
 
 } // handleWindowResize
 //--------------------------------------------------------------------------------
-function brushReader ()
+function brushReader(event)
 {
-  console.log("brushReader");
-  selectedRegion = d3brush.extent();
-  x0 = selectedRegion[0][0];
-  x1 = selectedRegion[1][0];
-  width = Math.abs(x0-x1);
-  if(width < 0.001)
-     selectedRegion = null
+   console.log("brushReader");
+   console.log(event.selection);
 
-}; // d3PlotBrushReader
+   selectedRegion = event.selection;
+   selectedNames = [];
+
+   if(selectedRegion == null){
+      return;
+      }
+	
+   x0 = xScale.invert(selectedRegion[0][0]);
+   x1 = xScale.invert(selectedRegion[1][0]);
+     // allow for upside down (anti-cartesian) y coordinate
+   y0 = yScale.invert(selectedRegion[1][1]);
+   y1 = yScale.invert(selectedRegion[0][1]);
+
+   console.log("x:  " + x0 + " - " + x1);
+   console.log("y:  " + y0 + " - " + y1);
+  
+   for(var i=0; i < dataset.length; i++){
+      var x = dataset[i].x;
+      var y = dataset[i].y;
+      console.log("checking [" + x + ", " + y + "]");
+      if(x >= x0 & x <= x1 & y >= y0 & y <= y1) {
+        console.log ("TRUE");
+        selectedNames.push("point " + i);
+        }
+     } // for i
+
+   console.log(" found " + selectedNames.length + " selected points");
+
+}; // brushReader
 //--------------------------------------------------------------------------------
 function d3plotPrep (msg)
 {
    payload = msg.payload;
    dataReceived = true;
+   console.log("--- d3plotPrep, incoming dataset")
+   console.log(msg)
+   console.log(payload.x)
 
       // assign global variables
-
    dataset = [];
    datasetLength = payload.x.length
+   console.log("-- assigning dataset")
 
    for(var i=0; i < datasetLength; i++){
      dataset.push({x: payload.x[i], y: payload.y[i]});
@@ -126,8 +112,10 @@ function d3plotPrep (msg)
 
    d3plot(dataset, xMin, xMax, yMin, yMax)
 
-   var return_msg = {cmd: msg.callback, status: "success", callback: "", payload: ""};
-   hub.send(return_msg);
+   if(msg.callback != null){
+      var return_msg = {cmd: msg.callback, status: "success", callback: "", payload: ""};
+      hub.send(return_msg);
+      }
 
 } // d3plotPrep
 //--------------------------------------------------------------------------------
@@ -137,11 +125,16 @@ function d3plot(dataset, xMin, xMax, yMin, yMax)
   var height = plotDiv.height();
 
   padding = 50;
-  xScale = d3.scale.linear()
+  console.log("xMin: " + xMin);
+  console.log("xMax: " + xMax);    
+  console.log("yMin: " + yMin);
+  console.log("yMax: " + yMax);    
+
+  xScale = d3.scaleLinear()
                  .domain([xMin,xMax])
                  .range([padding,width-padding]);
 
-  yScale = d3.scale.linear()
+  yScale = d3.scaleLinear()
                  .domain([yMin, yMax])
                  .range([height-padding, padding]); // note inversion
 
@@ -150,34 +143,22 @@ function d3plot(dataset, xMin, xMax, yMin, yMax)
     // must remove the svg from a d3-selected object, not just a jQuery object
   d3plotDiv.select("#plotSVG").remove();  // so that append("svg") is not cumulative
 
-  d3brush = d3.svg.brush()
-        .x(xScale)
-        .y(yScale)
-        .on("brushend", brushReader);
+  brush = d3.brush()
+    .on("end", brushReader);
 
-
-  var svg = d3.select("#browserVizDemoDiv")
+  var svg = d3.select("#bvDemoDiv")
       .append("svg")
       .attr("id", "plotSVG")
       .attr("width", width)
       .attr("height", height)
-      .call(d3brush);
+      .call(brush);
 
-  xAxis = d3.svg.axis()
-                .scale(xScale)
-                .ticks(10)
-                .orient("bottom")
-                .tickSize(10);
+   const xAxis = d3.axisBottom()
+         .scale(this.xScale);
 
-  yAxis = d3.svg.axis()
-                .scale(yScale)
-                .ticks(10)
-                .tickSize(10)
-                .orient("left");
+   const yAxis = d3.axisLeft()
+         .scale(this.yScale)
 
-
-  var xTranslationForYAxis = xScale(0);
-  var yTranslationForXAxis = yScale(10);
 
   var tooltip = d3plotDiv.append("div")
                    .attr("class", "tooltip")
@@ -223,34 +204,20 @@ function d3plot(dataset, xMin, xMax, yMin, yMax)
 
 } // d3plot
 //--------------------------------------------------------------------------------
+function ping(msg)
+{
+   console.log("--- bvDemo.js responding now to ping")
+   console.log(msg)
+   var returnMsg = {cmd: msg.callback, callback: "", status: "success",
+                    payload: "pong"};
+   console.log("---- hub")
+   console.log(hub)
+   hub.send(returnMsg);
+
+} // ping
+//--------------------------------------------------------------------------------
 function getSelection(msg)
 {
-   var selectedNames = [];
-
-   if(selectedRegion == null){
-      var returnMsg = {cmd: msg.callback, callback: "", status: "success",
-                        payload: selectedNames};
-      console.log("=== returning from getSelection, no selected points");
-      console.log(returnMsg);
-      hub.send(returnMsg);
-      return;
-      }
-
-   x0 = selectedRegion[0][0]
-   x1 = selectedRegion[1][0]
-   y0 = selectedRegion[0][1]
-   y1 = selectedRegion[1][1]
-
-   for(var i=0; i < datasetLength; i++){
-      x = dataset[i].x;
-      y = dataset[i].y;
-      if(x >= x0 & x <= x1 & y >= y0 & y <= y1) {
-        console.log ("TRUE");
-        selectedNames.push("point " + i);
-        }
-     } // for i
-
-   console.log(" found " + selectedNames.length + " selected points");
    var returnMsg = {cmd: msg.callback, callback: "", status: "success",
                     payload: selectedNames};
 
@@ -264,13 +231,27 @@ function getSelection(msg)
   return({
     setHub: setHub,
     addMessageHandlers: addMessageHandlers,
-    initializeUI: initializeUI
+    initializeUI: initializeUI,
+    plotxy: d3plotPrep
     });
 
 }); // BrowserVizDemo
 //--------------------------------------------------------------------------------
-
-hub = BrowserViz();
+function test_app()
+{
+   console.log("--- direct (w/o R) testing bvDemoApp.js");
+   msg = {"cmd":"plotxy",
+          "callback": null,
+          "status":"request",
+          "payload":{"x":[1,2,3,4,5],
+                     "y":[1,4,9,16,25],
+                     "xMin":1,"xMax":5,"yMin":1,"yMax":25}}
+   bvDemo.plotxy(msg);
+    
+} // test_app
+//--------------------------------------------------------------------------------
+console.log("--- executing bvDemo.js")
+hub = BrowserViz;
 bvDemo = BrowserVizDemo();
 bvDemo.setHub(hub)
 bvDemo.addMessageHandlers()
@@ -283,11 +264,3 @@ hub.addOnDocumentReadyFunction(f);
 hub.start();
 
 //--------------------------------------------------------------------------------
-</script>
-
-</head>
-<body>
-  <div id="browserVizDemoDiv"></div>
-</body>
-</html>
-

@@ -1,0 +1,56 @@
+<html>
+<head>
+  <title>bvDemo</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+  <style>
+.center {
+   margin-left: auto;
+   margin-right: auto;
+   width: 70%;
+   background-color: #b0e0e6;
+   }
+
+#bvDemoDiv {
+  background-color: #F0F0F0;
+  position: relative;
+  height: 400px;
+  width: 600px;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+  margin-right: auto;
+  margin-left: auto;
+  margin-top: 20px;
+  margin-bottom: auto;
+  padding: 0px;
+  }
+
+.extent {
+  fill-opacity: .1;
+  stroke: #f00;
+  }
+
+.domain {
+  fill: none;
+  stroke: black;
+  stroke-width; 1;
+  }
+</style>
+
+
+<script type="text/javascript">
+m4_changequote(,)
+m4_include(../lib/d3.min.js)
+m4_include(../lib/browserviz.js)
+m4_include(bvDemo.js)
+</script>
+
+</head>
+
+<body>
+  <div id="bvDemoDiv"></div>
+</body>
+</html>
